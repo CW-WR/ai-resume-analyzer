@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI智能简历分析系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+        .upload-area {
+            border: 2px dashed #e5e7eb;
+            transition: all 0.3s ease;
+        }
+        .upload-area:hover, .upload-area.dragover {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+        }
+        .score-bar {
+            transition: width 0.5s ease;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <div class="max-w-4xl mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-indigo-600 rounded-full mb-4">
+                <i class="fa fa-file-text-o text-white text-2xl"></i>
+            </div>
+            <h1 class="text-3xl font-bold text-gray-800">AI智能简历分析系统</h1>
+            <p class="text-gray-500 mt-2">上传简历，AI自动解析并匹配岗位需求</p>
+        </div>
+
+        <!-- Main Content -->
+        <div class="grid md:grid-cols-2 gap-6">
+            <!-- Upload Section -->
+            <div class="bg-white rounded-2xl shadow-lg p-6">
+                <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                    <i class="fa fa-upload text-indigo-600 mr-2"></i>上传简历
+                </h2>
+                
+                <div 
+                    id="uploadArea" 
+                    class="upload-area rounded-xl p-8 text-center cursor-pointer"
+                    onclick="document.getElementById('fileInput').click()"
+                >
+                    <input type="file" id="fileInput" accept=".pdf" class="hidden" onchange="handleFileSelect(event)">
+                    <div class="flex flex-col items-center">
+                        <i class="fa fa-file-pdf-o text-5xl text-gray-400 mb-4"></i>
+                        <p class="text-gray-600 mb-2">点击或拖拽上传PDF简历</p>
+                        <p class="text-sm text-gray-400">支持多页简历解析</p>
+                    </div>
+                </div>
+                
+                <div id="uploadStatus" class="mt-4 hidden">
+                    <div class="flex items-center justify-center">
+                        <i class="fa fa-spinner fa-spin text-indigo-600 mr-2"></i>
+                        <span class="text-gray-600">正在解析简历...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Job Requirement Section -->
+            <div class="bg-white rounded-2xl shadow-lg p-6">
+                <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                    <i class="fa fa-briefcase text-indigo-600 mr-2"></i>岗位需求
+                </h2>
+                
+                <textarea 
+                    id="jobDescription" 
+                    class="w-full h-32 p-4 border border-gray-200 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    placeholder="请输入岗位需求描述，例如：&#10;职位：Python开发工程师&#10;要求：3年以上开发经验，熟悉FastAPI、Redis，本科及以上学历"></textarea>
+                
+                <button 
+                    id="matchBtn" 
+                    class="w-full mt-4 bg-indigo-600 text-white py-3 rounded-xl font-medium hover:bg-indigo-700 transition-colors flex items-center justify-center"
+                    disabled
+                >
+                    <i class="fa fa-search mr-2"></i>开始匹配评分
+                </button>
+            </div>
+        </div>
+
+        <!-- Result Section -->
+        <div id="resultSection" class="mt-6 bg-white rounded-2xl shadow-lg p-6 hidden">
+            <h2 class="text-lg font-semibold text-gray-800 mb-6 flex items-center">
+                <i class="fa fa-bar-chart text-indigo-600 mr-2"></i>分析结果
+            </h2>
+            
+            <div class="grid md:grid-cols-3 gap-4 mb-6">
+                <div class="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl p-4 text-white">
+                    <div class="text-3xl font-bold" id="overallScore">--</div>
+                    <div class="text-sm opacity-80">综合匹配度</div>
+                </div>
+                <div class="bg-gradient-to-br from-green-500 to-teal-600 rounded-xl p-4 text-white">
+                    <div class="text-3xl font-bold" id="skillScore">--</div>
+                    <div class="text-sm opacity-80">技能匹配率</div>
+                </div>
+                <div class="bg-gradient-to-br from-orange-500 to-red-600 rounded-xl p-4 text-white">
+                    <div class="text-3xl font-bold" id="experienceScore">--</div>
+                    <div class="text-sm opacity-80">经验匹配率</div>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6">
+                <!-- Basic Info -->
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500 mb-3">基本信息</h3>
+                    <div class="space-y-2">
+                        <div class="flex items-center">
+                            <i class="fa fa-user text-gray-400 w-5"></i>
+                            <span id="infoName" class="text-gray-700">--</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fa fa-phone text-gray-400 w-5"></i>
+                            <span id="infoPhone" class="text-gray-700">--</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fa fa-envelope text-gray-400 w-5"></i>
+                            <span id="infoEmail" class="text-gray-700">--</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fa fa-map-marker text-gray-400 w-5"></i>
+                            <span id="infoAddress" class="text-gray-700">--</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Background Info -->
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500 mb-3">背景信息</h3>
+                    <div class="space-y-2">
+                        <div class="flex items-center">
+                            <i class="fa fa-briefcase text-gray-400 w-5"></i>
+                            <span id="infoExperience" class="text-gray-700">--</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fa fa-graduation-cap text-gray-400 w-5"></i>
+                            <span id="infoEducation" class="text-gray-700">--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Keywords -->
+            <div class="mt-6">
+                <h3 class="text-sm font-medium text-gray-500 mb-3">关键词匹配</h3>
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div>
+                        <h4 class="text-xs text-green-600 font-medium mb-2">匹配的关键词</h4>
+                        <div id="keywordsFound" class="flex flex-wrap gap-2"></div>
+                    </div>
+                    <div>
+                        <h4 class="text-xs text-red-500 font-medium mb-2">缺失的关键词</h4>
+                        <div id="keywordsMissing" class="flex flex-wrap gap-2"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+        let resumeId = null;
+
+        // Handle file select
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                uploadResume(file);
+            }
+        }
+
+        // Handle drag and drop
+        const uploadArea = document.getElementById('uploadArea');
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file && file.type === 'application/pdf') {
+                uploadResume(file);
+            }
+        });
+
+        // Upload resume
+        async function uploadResume(file) {
+            const uploadStatus = document.getElementById('uploadStatus');
+            const uploadArea = document.getElementById('uploadArea');
+            
+            uploadStatus.classList.remove('hidden');
+            uploadArea.style.pointerEvents = 'none';
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch(`${API_BASE}/resume/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error('上传失败');
+                }
+
+                const data = await response.json();
+                resumeId = data.resume_id;
+                displayResumeInfo(data);
+                
+                // Enable match button
+                document.getElementById('matchBtn').disabled = false;
+            } catch (error) {
+                alert('上传失败：' + error.message);
+            } finally {
+                uploadStatus.classList.add('hidden');
+                uploadArea.style.pointerEvents = 'auto';
+            }
+        }
+
+        // Display resume info
+        function displayResumeInfo(data) {
+            document.getElementById('resultSection').classList.remove('hidden');
+            
+            // Basic info
+            document.getElementById('infoName').textContent = data.basic_info.name || '未提取';
+            document.getElementById('infoPhone').textContent = data.basic_info.phone || '未提取';
+            document.getElementById('infoEmail').textContent = data.basic_info.email || '未提取';
+            document.getElementById('infoAddress').textContent = data.basic_info.address || '未提取';
+            
+            // Background info
+            document.getElementById('infoExperience').textContent = data.background_info.work_experience_years || '未提取';
+            document.getElementById('infoEducation').textContent = data.background_info.education || '未提取';
+        }
+
+        // Match resume
+        document.getElementById('matchBtn').addEventListener('click', async () => {
+            const jobDescription = document.getElementById('jobDescription').value;
+            if (!jobDescription.trim()) {
+                alert('请输入岗位需求描述');
+                return;
+            }
+
+            const btn = document.getElementById('matchBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa fa-spinner fa-spin mr-2"></i>匹配中...';
+
+            try {
+                const response = await fetch(`${API_BASE}/match/score`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        resume_id: resumeId,
+                        job_description: jobDescription
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('匹配失败');
+                }
+
+                const data = await response.json();
+                displayMatchResult(data);
+            } catch (error) {
+                alert('匹配失败：' + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa fa-search mr-2"></i>开始匹配评分';
+            }
+        });
+
+        // Display match result
+        function displayMatchResult(data) {
+            const score = data.match_score;
+            
+            document.getElementById('overallScore').textContent = score.overall_score.toFixed(1);
+            document.getElementById('skillScore').textContent = score.skill_match.toFixed(1) + '%';
+            document.getElementById('experienceScore').textContent = score.experience_match.toFixed(1) + '%';
+
+            // Keywords found
+            const foundContainer = document.getElementById('keywordsFound');
+            foundContainer.innerHTML = '';
+            score.keywords_found.forEach(keyword => {
+                const tag = document.createElement('span');
+                tag.className = 'px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full';
+                tag.textContent = keyword;
+                foundContainer.appendChild(tag);
+            });
+            if (score.keywords_found.length === 0) {
+                foundContainer.innerHTML = '<span class="text-gray-400 text-sm">无</span>';
+            }
+
+            // Keywords missing
+            const missingContainer = document.getElementById('keywordsMissing');
+            missingContainer.innerHTML = '';
+            score.keywords_missing.forEach(keyword => {
+                const tag = document.createElement('span');
+                tag.className = 'px-2 py-1 bg-red-100 text-red-700 text-xs rounded-full';
+                tag.textContent = keyword;
+                missingContainer.appendChild(tag);
+            });
+            if (score.keywords_missing.length === 0) {
+                missingContainer.innerHTML = '<span class="text-gray-400 text-sm">无</span>';
+            }
+        }
+    </script>
+</body>
+</html>
