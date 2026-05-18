@@ -11,3 +11,6 @@ __pycache__/
 .env.test.local
 .env.production.local
 *.log
+temp/
+*.pdf
+!sample_resume.html
