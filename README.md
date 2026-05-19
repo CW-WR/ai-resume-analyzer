@@ -1,6 +1,7 @@
 # AI智能简历分析系统
 
 一个基于AI的智能简历分析系统，支持PDF简历上传、信息提取、岗位匹配和评分功能。
+<video src="[movie.mp4.mp4](https://github.com/user-attachments/assets/bca09fec-3cd9-474e-aaba-83189ac39451)" controls="controls" width="500" height="300"></video>
 
 ## 功能特性
 
