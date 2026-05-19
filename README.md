@@ -1,7 +1,7 @@
 # AI智能简历分析系统
 
 一个基于AI的智能简历分析系统，支持PDF简历上传、信息提取、岗位匹配和评分功能。
-<video src="[movie.mp4.mp4](https://github.com/user-attachments/assets/bca09fec-3cd9-474e-aaba-83189ac39451)" controls="controls" width="500" height="300"></video>
+
 
 ## 功能特性
 
@@ -183,7 +183,7 @@ CACHE_EXPIRE=86400
 ```
 
 ## 演示示例
-
+https://github.com/user-attachments/assets/fe7a7e71-4c6d-4e83-9e96-bd104fb92caf
 1. 使用 `sample_resume.html` 创建PDF简历
 2. 上传到系统
 3. 输入岗位需求：
