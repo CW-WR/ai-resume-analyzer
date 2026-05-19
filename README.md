@@ -196,6 +196,9 @@ CACHE_EXPIRE=86400
 - 免费API有Token限制，长简历可能导致AI匹配失败
 - 当AI失败时，系统会自动回退到简单匹配算法
 - Redis为可选功能，不影响核心功能使用
+-前端部署链接：https://cw-wr.github.io/ai-resume-analyzer/
+github page部署的静态网站，仅供参考
+<img width="2254" height="1354" alt="image" src="https://github.com/user-attachments/assets/130322b8-e844-4263-8495-d8eb1af29952" />
 
 ## 许可证
 
