@@ -163,7 +163,8 @@
     </div>
 
     <script>
-        const API_BASE = '/api';
+        // 自动检测API地址
+        let API_BASE = window.location.hostname === 'localhost' ? 'http://localhost:8000/api' : '/api';
         let resumeId = null;
 
         // Handle file select
